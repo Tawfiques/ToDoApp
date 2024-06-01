@@ -34,7 +34,7 @@ header {
     padding: 0 13px;
     cursor: pointer;
     transition: all 0.4s;
-    animation: fade-id 0.2s;
+    animation: fade-in 0.2s;
 }
 
 .dd-toggle:hover {
@@ -71,13 +71,21 @@ header {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-@keyframes fade-id {
+@keyframes fade-in {
     0% {
         opacity: 0;
     }
 
     100% {
         opacity: 1;
+    }
+}
+@keyframes fade-out{
+    0%{
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
     }
 }
 
@@ -96,7 +104,7 @@ header {
     border-radius: 20px;
     flex-direction: column;
     box-shadow: 5px 5px 5px #33322e;
-    animation: fade-id 0.2s;
+    animation: fade-in 0.2s;
 }
 
 .app--box__title {
@@ -128,7 +136,7 @@ header {
     margin-left: 10px;
     margin-right: 10px;
     align-items: center;
-    
+    animation: fade-in 0.4s;
 }
 .app--box__item:first-child{
     margin-top: 10px;
@@ -143,8 +151,14 @@ header {
 }
 .app--box__item--checkbox:checked{
     accent-color: #8CD4CB;
+    animation: fade-in 0.4s;
 }
-.app--box__item--delete{
-    margin-left: auto;
+
+s{
+    color: #33322e;
+    text-decoration-thickness: 2px;
+    align-self: center;
+    animation: fade-in 0.02s;
+    
     
 }
