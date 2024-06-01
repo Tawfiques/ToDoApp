@@ -1,0 +1,150 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+/* CSS RESET*/
+* {
+    padding: 0%;
+    margin: 0%;
+    color: #33322e;
+}
+
+.app {
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-style: italic;
+    height: 100vh;
+    width: 100vw;
+    background-color: #f6a89e;
+}
+
+button {
+    border: initial;
+    background-color: initial;
+    color: inherit;
+    font: inherit;
+    outline: none;
+}
+
+header {
+    display: flex;
+    height: 55px;
+}
+
+.dd-toggle {
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0 13px;
+    cursor: pointer;
+    transition: all 0.4s;
+    animation: fade-id 0.2s;
+}
+
+.dd-toggle:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+.dd-toggle__logo {
+    height: 40px;
+    width: 80px;
+    align-self: stretch;
+}
+
+.dd-toggle__img {
+    align-self: center;
+    object-fit: cover;
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    margin-right: 7px;
+}
+
+.dd-toggle:nth-of-type(2) {
+    margin-left: auto;
+}
+
+.dd-toggle:last-child {
+    display: flex;
+    align-items: center;
+}
+
+.dd-toggle:focus {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fade-id {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.app__container {
+    height: calc(100vh - 55px);
+    display: grid;
+    grid-template-columns: auto minmax(225px,450px) auto;
+    margin: 0% 5%;
+
+}
+
+.app--box {
+    display: flex;
+    margin-bottom: 12.5%;
+    background-color: #f9f3e5;
+    border-radius: 20px;
+    flex-direction: column;
+    box-shadow: 5px 5px 5px #33322e;
+    animation: fade-id 0.2s;
+}
+
+.app--box__title {
+    display: flex;
+    justify-content: center;
+    font-size: xx-large;
+    font-weight: 800;
+    padding: 20px 10px;
+}
+
+.app--box__input {
+    display: flex;
+    flex-direction: row;
+    justify-self: stretch;
+}
+
+.app--box__input__box {
+    flex: 1;
+}
+.app--box__items{
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+}
+
+.app--box__item{
+    display: flex;
+    font-weight: 600;
+    margin-left: 10px;
+    margin-right: 10px;
+    align-items: center;
+    
+}
+.app--box__item:first-child{
+    margin-top: 10px;
+}
+
+.app--box__item--checkbox{
+   margin-right: 8px;
+   height: 15px;
+   width: 15px;
+   box-shadow: 3px 3px 3px #f1a59c;;
+   
+}
+.app--box__item--checkbox:checked{
+    accent-color: #8CD4CB;
+}
+.app--box__item--delete{
+    margin-left: auto;
+    
+}
