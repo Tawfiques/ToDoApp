@@ -180,7 +180,7 @@ app.get(
 app.get(
   "/auth/google/Todoapp",
   passport.authenticate("google", {
-    failureRedirect: process.env.CALLBACK_URL
+    failureRedirect: '/error'
   })
   ,
   function (req, res) {
