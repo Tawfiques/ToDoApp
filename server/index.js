@@ -1,13 +1,13 @@
 // =============== Section 1: Importing Dependencies ===============
-import express from "express"
-import bodyParser from "body-parser"
-import 'dotenv/config'
-import mongoose from "mongoose"
+import express from "express";
+import bodyParser from "body-parser";
+import 'dotenv/config';
+import mongoose from "mongoose";
 import cors from "cors";
 import users from "./models.js";
 import passport from "passport";
 import session from "express-session";
-import GoogleStrategy from "passport-google-oauth"
+import GoogleStrategy from "passport-google-oauth";
 import morgan from "morgan";
 
 
@@ -80,55 +80,92 @@ passport.use(
 
 // =============== Section 5: Database Connection ===============
 async function main() {
-  await mongoose.connect(process.env.MDB_CONNECT_STRING);
+  try {
+    await mongoose.connect(process.env.MDB_CONNECT_STRING);
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
 }
-main().catch(err => console.log(err));
+main();
 
 
 // =============== Section 6: Routes ===============
 
-app.get('/getdata', authMiddleware, async (req, res) => {
-  const response = await users.find({ email: req.user.email }).exec()
-  res.send(response[0]);
-})
-
-app.get('/getitems', authMiddleware, async (req, res) => {
-  const response = await users.find({ email: req.user.email }).exec()
-  res.send(response[0].tasks);
-})
-
-app.post('/updatedata', authMiddleware, async (req, res) => {
-  console.log(req.body.data)
-  if (req.body.data == 'clear') {
-    const arr = []
-    const response = await users.updateOne({ email: req.user.email }, { tasks: arr })
-    res.send(response.acknowledged)
-  } else if (req.body.data.length > 0) {
-    const arr = req.body.data
-    const response = await users.updateOne({ email: req.user.email }, { tasks: arr })
-    res.send(response.acknowledged)
+app.get('/', async (req, res) => {
+  try {
+    res.send('Server is running')
+  } catch (error) {
+    res.status(500).send(error);
   }
 })
 
+app.get('/getdata', authMiddleware, async (req, res) => {
+  try {
+    const response = await users.find({ email: req.user.email }).exec()
+    res.send(response[0]);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+})
+
+app.get('/getitems', authMiddleware, async (req, res) => {
+  try {
+    const response = await users.find({ email: req.user.email }).exec()
+    res.send(response[0].tasks);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+})
+
+app.post('/updatedata', authMiddleware, async (req, res) => {
+  try {
+    console.log(req.body.data)
+    if (req.body.data == 'clear') {
+      const arr = []
+      const response = await users.updateOne({ email: req.user.email }, { tasks: arr })
+      res.send(response.acknowledged)
+    } else if (req.body.data.length > 0) {
+      const arr = req.body.data
+      const response = await users.updateOne({ email: req.user.email }, { tasks: arr })
+      res.send(response.acknowledged)
+    }
+  } catch (error) {
+    res.status(500).send(error);
+  }
+})
 
 app.post('/additem', authMiddleware, async (req, res) => {
-  const response = await users.updateOne({ email: req.user.email }, { $push: { tasks: req.body.data } })
-  res.send(response.acknowledged)
+  try {
+    const response = await users.updateOne({ email: req.user.email }, { $push: { tasks: req.body.data } })
+    res.send(response.acknowledged)
+  } catch (error) {
+    res.status(500).send(error);
+  }
 })
 
 app.delete('/deleteitem/:id', authMiddleware, async (req, res) => {
-  const response = await users.updateOne({ email: req.user.email }, { $pull: { tasks: { _id: req.params.id } } })
-  res.send(response.acknowledged)
+  try {
+    const response = await users.updateOne({ email: req.user.email }, { $pull: { tasks: { _id: req.params.id } } })
+    res.send(response.acknowledged)
+  } catch (error) {
+    res.status(500).send(error);
+  }
 })
+
 app.put('/updateitem/:id', authMiddleware, async (req, res) => {
-  const user = await users.findOne({ email: req.user.email });
-  const task = user.tasks.find(task => task._id.equals(req.params.id));
-  if (task) {
-    const doneValue = !task.done;
-    const response = await users.updateOne({ email: req.user.email, 'tasks._id': req.params.id }, { $set: { 'tasks.$.done': doneValue } });
-    res.send(response.acknowledged);
-  } else {
-    res.status(404).json({ message: 'Task not found' });
+  try {
+    const user = await users.findOne({ email: req.user.email });
+    const task = user.tasks.find(task => task._id.equals(req.params.id));
+    if (task) {
+      const doneValue = !task.done;
+      const response = await users.updateOne({ email: req.user.email, 'tasks._id': req.params.id }, { $set: { 'tasks.$.done': doneValue } });
+      res.send(response.acknowledged);
+    } else {
+      res.status(404).json({ message: 'Task not found' });
+    }
+  } catch (error) {
+    res.status(500).send(error);
   }
 })
 
@@ -152,20 +189,26 @@ app.get(
 );
 
 app.get("/auth/logout", (req, res) => {
-  req.logout(function (err) {
-    if (err) {
-      return next(err);
-    }
-    res.redirect("http://localhost:5173");
-  });
+  try {
+    req.logout(function (err) {
+      if (err) {
+        return next(err);
+      }
+      res.redirect("http://localhost:5173");
+    });
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
-
 app.get("/auth/check", (req, res) => {
-  res.send({ isLogged: !!req.user });
+  try {
+    res.send({ isLogged: !!req.user });
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 );
-
 
 passport.serializeUser((user, cb) => {
   cb(null, user);
@@ -174,11 +217,4 @@ passport.serializeUser((user, cb) => {
 passport.deserializeUser((user, cb) => {
   cb(null, user);
 });
-
-
-// =============== Section 7: Starting the Server ===============
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
-
 
