@@ -1,14 +1,14 @@
 // =============== Section 1: Importing Dependencies ===============
-import express from "express";
-import bodyParser from "body-parser";
-import 'dotenv/config';
-import mongoose from "mongoose";
-import cors from "cors";
-import users from "./models.js";
-import passport from "passport";
-import session from "express-session";
-import GoogleStrategy from "passport-google-oauth";
-import morgan from "morgan";
+import express from "express"
+import bodyParser from "body-parser"
+import 'dotenv/config'
+import mongoose from "mongoose"
+import cors from "cors"
+import users from "./models.js"
+import passport from "passport"
+import session from "express-session"
+import GoogleStrategy from "passport-google-oauth"
+import morgan from "morgan"
 
 
 
@@ -218,3 +218,7 @@ passport.deserializeUser((user, cb) => {
   cb(null, user);
 });
 
+// =============== Section 7: Starting the Server ===============
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
