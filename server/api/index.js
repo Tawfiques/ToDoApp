@@ -19,7 +19,7 @@ const port = 3000
 
 // =============== Section 3: Middlewares ===============
 app.use(cors({
-  origin: process.env.BASE_URL,
+  origin: process.env.process.env.BASE_URL,
   credentials: true, // Allow credentials
   optionsSuccessStatus: 200
 }));
@@ -179,12 +179,12 @@ app.get(
 app.get(
   "/auth/google/Todoapp",
   passport.authenticate("google", {
-    failureRedirect: BASE_URL
+    failureRedirect: process.env.BASE_URL
   })
   ,
   function (req, res) {
     req.session.user = req.user;
-    res.redirect(BASE_URL);
+    res.redirect(process.env.BASE_URL);
   }
 );
 
@@ -194,7 +194,7 @@ app.get("/auth/logout", (req, res) => {
       if (err) {
         return next(err);
       }
-      res.redirect(BASE_URL);
+      res.redirect(process.env.BASE_URL);
     });
   } catch (error) {
     res.status(500).send(error);
