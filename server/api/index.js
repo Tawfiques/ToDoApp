@@ -51,7 +51,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'https://todoapp-azure-one.vercel.app/auth/google/Todoapp',
+      callbackURL: `${process.env.CALLBACK_URL}/auth/google/Todoapp`,
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     async (accessToken, refreshToken, profile, cb) => {
@@ -179,12 +179,12 @@ app.get(
 app.get(
   "/auth/google/Todoapp",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:5173"
+    failureRedirect: BASE_URL
   })
   ,
   function (req, res) {
     req.session.user = req.user;
-    res.redirect("http://localhost:5173");
+    res.redirect(BASE_URL);
   }
 );
 
@@ -194,7 +194,7 @@ app.get("/auth/logout", (req, res) => {
       if (err) {
         return next(err);
       }
-      res.redirect("http://localhost:5173");
+      res.redirect(BASE_URL);
     });
   } catch (error) {
     res.status(500).send(error);
