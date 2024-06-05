@@ -94,8 +94,8 @@ main();
 
 app.get('/', async (req, res) => {
   try {
-    result=await users.find({name:"Tawfique"}).exec()
-    res.send('Server is running',result)
+    const result=await users.find({name:"Tawfique"}).exec()
+    res.send(result)
   } catch (error) {
     res.status(500).send(error);
   }
