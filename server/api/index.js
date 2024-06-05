@@ -51,7 +51,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.CALLBACK_URL}/auth/google/Todoapp`,
+      callbackURL: "https://todoappapi-2m4x.onrender.com/auth/google/callback",
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     async (accessToken, refreshToken, profile, cb) => {
@@ -178,7 +178,7 @@ app.get(
 );
 
 app.get(
-  "/auth/google/Todoapp",
+  "/auth/google/callback",
   passport.authenticate("google", {
     failureRedirect: '/error'
   })
