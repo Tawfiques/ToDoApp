@@ -94,7 +94,8 @@ main();
 
 app.get('/', async (req, res) => {
   try {
-    res.send('Server is running')
+    result=await users.find({name:"Tawfique"}).exec()
+    res.send('Server is running',result)
   } catch (error) {
     res.status(500).send(error);
   }
@@ -179,7 +180,7 @@ app.get(
 app.get(
   "/auth/google/Todoapp",
   passport.authenticate("google", {
-    failureRedirect: process.env.BASE_URL
+    failureRedirect: '/'
   })
   ,
   function (req, res) {
