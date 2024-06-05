@@ -19,7 +19,7 @@ const port = 3000
 
 // =============== Section 3: Middlewares ===============
 app.use(cors({
-  origin: process.env.process.env.BASE_URL,
+  origin: process.env.BASE_URL,
   credentials: true, // Allow credentials
   optionsSuccessStatus: 200
 }));
