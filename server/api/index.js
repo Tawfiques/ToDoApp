@@ -4,7 +4,7 @@ import bodyParser from "body-parser"
 import 'dotenv/config'
 import mongoose from "mongoose"
 import cors from "cors"
-import users from "./models.js"
+import users from "../models.js"
 import passport from "passport"
 import session from "express-session"
 import GoogleStrategy from "passport-google-oauth"
