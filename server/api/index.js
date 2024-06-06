@@ -28,7 +28,7 @@ app.set("trust proxy", 1);
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 function authMiddleware(req, res, next) {
-  if (req.session.user) {
+  if (req.user) {
     next();
   } else {
     res.status(401).json({ message: 'Unauthorized User' });
@@ -44,14 +44,14 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: MBSTORE,
     cookie: {
       sameSite: 'none',
       httpOnly: true,
       secure: true, // Secure cookies in production
       maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
-  }
+    }
   })
 );
 app.use(passport.initialize());
@@ -62,7 +62,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "https://todoappapi-2m4x.onrender.com/auth/google/callback",
+      callbackURL: `${process.env.CALLBACK_URL}/auth/google/callback`,
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     async (accessToken, refreshToken, profile, cb) => {
@@ -78,7 +78,7 @@ passport.use(
           const user = await users.create(Newuser);
           return cb(null, user);
         } else if (response.length == 1) {
-          return cb(null, profile);
+          return cb(null, response[0]);
         }
       } catch (error) {
         console.log(error);
@@ -87,6 +87,21 @@ passport.use(
     }
   )
 );
+
+
+passport.serializeUser((user, cb) => {
+  cb(null, user.email);
+});
+
+passport.deserializeUser((userEmail, cb) => {
+  async function gtu() {
+    const response = await users.find({ email: userEmail }).exec();
+    const user=response[0];
+    cb(null, user);
+  }
+  gtu();
+});
+
 
 
 // =============== Section 5: Database Connection ===============
@@ -105,8 +120,7 @@ main();
 
 app.get('/', async (req, res) => {
   try {
-    const result=await users.find({name:"Tawfique"}).exec()
-    res.send(result)
+    res.send("Server is running successfully");
   } catch (error) {
     res.status(500).send(error);
   }
@@ -192,11 +206,9 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", {
     failureRedirect: '/error'
-  },
-    function (req, res) {
-      res.cookie('sessiondata', req.session.user, {maxAge: 9000000, httpOnly: true, sameSite: 'none', secure: true});
-      res.redirect(process.env.BASE_URL);
-    })
+  }), function (req, res) {
+    res.redirect(process.env.BASE_URL);
+  }
 );
 
 app.get("/auth/logout", (req, res) => {
@@ -213,7 +225,6 @@ app.get("/auth/logout", (req, res) => {
 });
 
 app.get("/auth/check", (req, res) => {
-  if(req.user)console.log(req.user);
   try {
     res.send({ isLogged: !!req.user });
   } catch (error) {
@@ -221,14 +232,6 @@ app.get("/auth/check", (req, res) => {
   }
 }
 );
-
-passport.serializeUser((user, cb) => {
-  cb(null, user);
-});
-
-passport.deserializeUser((user, cb) => {
-  cb(null, user);
-});
 
 // =============== Section 7: Starting the Server ===============
 app.listen(port, () => {
