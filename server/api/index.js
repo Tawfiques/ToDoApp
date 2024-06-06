@@ -45,7 +45,11 @@ app.use(
     resave: false,
     saveUninitialized: true,
     store: MBSTORE,
-    cookie: { maxAge: 1000 * 60 * 60 * 24 }
+    cookie: {
+      httpOnly: true,
+      secure: true, // Secure cookies in production
+      maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+  }
   })
 );
 app.use(passport.initialize());
