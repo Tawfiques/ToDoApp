@@ -46,8 +46,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MBSTORE,
-    cookie: {
-      sameSite: 'none',
+    cookie: { // Secure cookies in production
       maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
     }
   })
