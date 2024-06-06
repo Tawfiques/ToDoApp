@@ -7,23 +7,17 @@ import cors from "cors"
 import users from "../models.js"
 import passport from "passport"
 import session from "express-session"
-import MongoStore from "connect-mongo"
+import MongoStore from "connect-mongo";
 import GoogleStrategy from "passport-google-oauth"
 import morgan from "morgan"
-import cookieParser from "cookie-parser"
-
-
-
 // =============== Section 2: Initializing Express App ===============
 const app = express()
 const port = 3000
-
-
 // =============== Section 3: Middlewares ===============
 app.use(cors({
   origin: process.env.BASE_URL,
   credentials: true, // Allow credentials
-  methods: 'GET,POST,PUT,DELETE',
+  optionsSuccessStatus: 200
 }));
 app.set("trust proxy", 1);
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -35,13 +29,10 @@ function authMiddleware(req, res, next) {
     res.status(401).json({ message: 'Unauthorized User' });
   }
 }
-
 const MBSTORE = MongoStore.create({
   mongoUrl: process.env.MDB_CONNECT_STRING
 });
-
 // =============== Section 4: Session & Passport Initialization ===============
-app.use(cookieParser())
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -49,14 +40,32 @@ app.use(
     saveUninitialized: false,
     store: MBSTORE,
     cookie: { // Secure cookies in production
-      sameSite: 'none',
-      secure: true,
-      maxAge: 1000 * 60 * 60 * 24,// 1 week
-      path: process.env.BASE_URL,
-      httpOnly: true, 
+      secure: true, // Change this to true
+      httpOnly: true,
+      sameSite: 'none', // Ensure this is set
+      maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
     }
   })
 );
+
+app.use(function (req, res, next) {
+
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Request methods you wish to allow
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+  // Request headers you wish to allow
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+  // Set to true if you need the website to include cookies in the requests sent
+  // to the API (e.g. in case you use sessions)
+  res.setHeader('Access-Control-Allow-Credentials', true);
+
+  // Pass to next layer of middleware
+  next();
+});
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(
@@ -86,16 +95,12 @@ passport.use(
       } catch (error) {
         console.log(error);
       }
-
     }
   )
 );
-
-
 passport.serializeUser((user, cb) => {
   cb(null, user.email);
 });
-
 passport.deserializeUser((userEmail, cb) => {
   async function gtu() {
     const response = await users.find({ email: userEmail }).exec();
@@ -104,9 +109,6 @@ passport.deserializeUser((userEmail, cb) => {
   }
   gtu();
 });
-
-
-
 // =============== Section 5: Database Connection ===============
 async function main() {
   try {
@@ -117,10 +119,7 @@ async function main() {
   }
 }
 main();
-
-
 // =============== Section 6: Routes ===============
-
 app.get('/', async (req, res) => {
   try {
     res.send("Server is running successfully");
@@ -128,7 +127,6 @@ app.get('/', async (req, res) => {
     res.status(500).send(error);
   }
 })
-
 app.get('/getdata', authMiddleware, async (req, res) => {
   try {
     const response = await users.find({ email: req.user.email }).exec()
@@ -137,7 +135,6 @@ app.get('/getdata', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-
 app.get('/getitems', authMiddleware, async (req, res) => {
   try {
     const response = await users.find({ email: req.user.email }).exec()
@@ -146,7 +143,6 @@ app.get('/getitems', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-
 app.post('/updatedata', authMiddleware, async (req, res) => {
   try {
     console.log(req.body.data)
@@ -163,7 +159,6 @@ app.post('/updatedata', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-
 app.post('/additem', authMiddleware, async (req, res) => {
   try {
     const response = await users.updateOne({ email: req.user.email }, { $push: { tasks: req.body.data } })
@@ -172,7 +167,6 @@ app.post('/additem', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-
 app.delete('/deleteitem/:id', authMiddleware, async (req, res) => {
   try {
     const response = await users.updateOne({ email: req.user.email }, { $pull: { tasks: { _id: req.params.id } } })
@@ -181,7 +175,6 @@ app.delete('/deleteitem/:id', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-
 app.put('/updateitem/:id', authMiddleware, async (req, res) => {
   try {
     const user = await users.findOne({ email: req.user.email });
@@ -197,14 +190,12 @@ app.put('/updateitem/:id', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-
 app.get(
   "/auth/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
   })
 );
-
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", {
@@ -213,7 +204,6 @@ app.get(
     res.redirect(process.env.BASE_URL);
   }
 );
-
 app.get("/auth/logout", (req, res) => {
   try {
     req.logout(function (err) {
@@ -226,7 +216,6 @@ app.get("/auth/logout", (req, res) => {
     res.status(500).send(error);
   }
 });
-
 app.get("/auth/check", (req, res) => {
   try {
     res.send({ isLogged: !!req.user });
@@ -235,7 +224,6 @@ app.get("/auth/check", (req, res) => {
   }
 }
 );
-
 // =============== Section 7: Starting the Server ===============
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
