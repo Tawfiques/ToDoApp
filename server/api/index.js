@@ -76,7 +76,7 @@ passport.use(
           const user = await users.create(Newuser);
           return cb(null, user);
         } else if (response.length == 1) {
-          return cb(null, response[0]);
+          return cb(null, profile);
         }
       } catch (error) {
         console.log(error);
