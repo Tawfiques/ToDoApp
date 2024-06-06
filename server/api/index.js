@@ -7,9 +7,11 @@ import cors from "cors"
 import users from "../models.js"
 import passport from "passport"
 import session from "express-session"
-import MongoStore from "connect-mongo";
+import cookieSession from "cookie-session"
+import MongoStore from "connect-mongo"
 import GoogleStrategy from "passport-google-oauth"
 import morgan from "morgan"
+import cookieParser from "cookie-parser"
 
 
 
@@ -22,7 +24,7 @@ const port = 3000
 app.use(cors({
   origin: process.env.BASE_URL,
   credentials: true, // Allow credentials
-  optionsSuccessStatus: 200
+  methods: 'GET,POST,PUT,DELETE',
 }));
 app.set("trust proxy", 1);
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -40,18 +42,19 @@ const MBSTORE = MongoStore.create({
 });
 
 // =============== Section 4: Session & Passport Initialization ===============
+app.use(cookieParser())
 app.use(
-  session({
+  cookieSession({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MBSTORE,
     cookie: { // Secure cookies in production
-      sameSite:"none",
-      partitioned: true,
+      sameSite: 'none',
       secure: true,
-      domain:process.env.BASE_URL,
-      maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+      maxAge: 1000 * 60 * 60 * 24,// 1 week
+      path: '/',
+      httpOnly: true, 
     }
   })
 );
