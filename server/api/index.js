@@ -7,6 +7,7 @@ import cors from "cors"
 import users from "../models.js"
 import passport from "passport"
 import session from "express-session"
+import MongoStore from "connect-mongo";
 import GoogleStrategy from "passport-google-oauth"
 import morgan from "morgan"
 
@@ -33,6 +34,9 @@ function authMiddleware(req, res, next) {
   }
 }
 
+const MBSTORE = MongoStore.create({
+  mongoUrl: process.env.MDB_CONNECT_STRING
+});
 
 // =============== Section 4: Session & Passport Initialization ===============
 app.use(
@@ -40,6 +44,7 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
+    store: MBSTORE,
     cookie: { maxAge: 1000 * 60 * 60 * 24 }
   })
 );
@@ -180,14 +185,15 @@ app.get(
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", {
+    successRedirect: '/logged',
     failureRedirect: '/error'
   })
-  ,
-  function (req, res) {
-    req.session.user = req.user;
-    res.redirect(process.env.BASE_URL);
-  }
 );
+
+app.get('/logged',(req,res)=>{
+  res.redirect(process.env.BASE_URL);
+})
+
 
 app.get("/auth/logout", (req, res) => {
   try {
@@ -203,6 +209,7 @@ app.get("/auth/logout", (req, res) => {
 });
 
 app.get("/auth/check", (req, res) => {
+  if(req.user)console.log(req.user);
   try {
     res.send({ isLogged: !!req.user });
   } catch (error) {
