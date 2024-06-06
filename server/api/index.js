@@ -24,6 +24,7 @@ app.use(cors({
   credentials: true, // Allow credentials
   optionsSuccessStatus: 200
 }));
+app.set("trust proxy", 1);
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 function authMiddleware(req, res, next) {
