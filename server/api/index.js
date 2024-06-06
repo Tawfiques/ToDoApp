@@ -196,8 +196,8 @@ app.get(
 );
 
 app.get('/logged',(req,res)=>{
-  res.send(req.user);
-  //res.redirect(process.env.BASE_URL);
+  res.cookie('sessiondata', req.user, {maxAge: 9000000, httpOnly: false, sameSite: 'none', secure: true});
+  res.redirect(process.env.BASE_URL);
 })
 
 
