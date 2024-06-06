@@ -191,16 +191,13 @@ app.get(
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    successRedirect: '/logged',
     failureRedirect: '/error'
-  })
+  },
+    function (req, res) {
+      res.cookie('sessiondata', req.user, {maxAge: 9000000, httpOnly: true, sameSite: 'none', secure: true});
+      res.redirect(process.env.BASE_URL);
+    })
 );
-
-app.get('/logged',(req,res)=>{
-  res.cookie('sessiondata', req.user, {maxAge: 9000000, httpOnly: true, sameSite: 'none', secure: true});
-  res.redirect(process.env.BASE_URL);
-})
-
 
 app.get("/auth/logout", (req, res) => {
   try {
