@@ -3,32 +3,22 @@ import express from "express"
 import bodyParser from "body-parser"
 import 'dotenv/config'
 import mongoose from "mongoose"
-import cors from "cors"
-import users from "../models.js"
+import users from "./models.js"
 import passport from "passport"
 import session from "express-session"
 import MongoStore from "connect-mongo";
 import GoogleStrategy from "passport-google-oauth"
 import morgan from "morgan"
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 // =============== Section 2: Initializing Express App ===============
 const app = express()
 const port = 3000
 // =============== Section 3: Middlewares ===============
-app.use(cors({
-  origin: process.env.BASE_URL,
-  credentials: true, // Allow credentials
-  optionsSuccessStatus: 200
-}));
-app.set("trust proxy", 1);
+
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(morgan('dev'))
-function authMiddleware(req, res, next) {
-  if (req.user) {
-    next();
-  } else {
-    res.status(401).json({ message: 'Unauthorized User' });
-  }
-}
+
 const MBSTORE = MongoStore.create({
   mongoUrl: process.env.MDB_CONNECT_STRING
 });
@@ -39,30 +29,14 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MBSTORE,
-    cookie: { // Secure cookies in production
-      secure: true, // Change this to true
-      httpOnly: true,
-      sameSite: 'none', // Ensure this is set
+    cookie: {
+      secure: true,
       maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
     }
   })
 );
 
-app.use(function (req, res, next) {
 
-  // Request methods you wish to allow
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-  // Request headers you wish to allow
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-  // Set to true if you need the website to include cookies in the requests sent
-  // to the API (e.g. in case you use sessions)
-  res.setHeader('Access-Control-Allow-Credentials', true);
-
-  // Pass to next layer of middleware
-  next();
-});
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(
@@ -71,7 +45,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.CALLBACK_URL}/auth/google/callback`,
+      callbackURL: `${process.env.CALLBACK_URL}/api/auth/google/callback`,
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     async (accessToken, refreshToken, profile, cb) => {
@@ -117,14 +91,14 @@ async function main() {
 }
 main();
 // =============== Section 6: Routes ===============
-app.get('/', async (req, res) => {
+app.get('/api', async (req, res) => {
   try {
     res.send("Server is running successfully");
   } catch (error) {
     res.status(500).send(error);
   }
 })
-app.get('/getdata', authMiddleware, async (req, res) => {
+app.get('/api/getdata', async (req, res) => {
   try {
     const response = await users.find({ email: req.user.email }).exec()
     res.send(response[0]);
@@ -132,7 +106,7 @@ app.get('/getdata', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-app.get('/getitems', authMiddleware, async (req, res) => {
+app.get('/api/getitems', async (req, res) => {
   try {
     const response = await users.find({ email: req.user.email }).exec()
     res.send(response[0].tasks);
@@ -140,7 +114,7 @@ app.get('/getitems', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-app.post('/updatedata', authMiddleware, async (req, res) => {
+app.post('/api/updatedata', async (req, res) => {
   try {
     console.log(req.body.data)
     if (req.body.data == 'clear') {
@@ -156,7 +130,7 @@ app.post('/updatedata', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-app.post('/additem', authMiddleware, async (req, res) => {
+app.post('/api/additem', async (req, res) => {
   try {
     const response = await users.updateOne({ email: req.user.email }, { $push: { tasks: req.body.data } })
     res.send(response.acknowledged)
@@ -164,7 +138,7 @@ app.post('/additem', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-app.delete('/deleteitem/:id', authMiddleware, async (req, res) => {
+app.delete('/api/deleteitem/:id', async (req, res) => {
   try {
     const response = await users.updateOne({ email: req.user.email }, { $pull: { tasks: { _id: req.params.id } } })
     res.send(response.acknowledged)
@@ -172,7 +146,7 @@ app.delete('/deleteitem/:id', authMiddleware, async (req, res) => {
     res.status(500).send(error);
   }
 })
-app.put('/updateitem/:id', authMiddleware, async (req, res) => {
+app.put('/api/updateitem/:id', async (req, res) => {
   try {
     const user = await users.findOne({ email: req.user.email });
     const task = user.tasks.find(task => task._id.equals(req.params.id));
@@ -188,32 +162,32 @@ app.put('/updateitem/:id', authMiddleware, async (req, res) => {
   }
 })
 app.get(
-  "/auth/google",
+  "/api/auth/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
   })
 );
 app.get(
-  "/auth/google/callback",
+  "/api/auth/google/callback",
   passport.authenticate("google", {
     failureRedirect: '/error'
   }), function (req, res) {
-    res.redirect(process.env.BASE_URL);
+    res.redirect("/");
   }
 );
-app.get("/auth/logout", (req, res) => {
+app.get("/api/auth/logout", (req, res) => {
   try {
     req.logout(function (err) {
       if (err) {
         return next(err);
       }
-      res.redirect(process.env.BASE_URL);
+      res.redirect("/");
     });
   } catch (error) {
     res.status(500).send(error);
   }
 });
-app.get("/auth/check", (req, res) => {
+app.get("/api/auth/check", (req, res) => {
   try {
     res.send({ isLogged: !!req.user });
   } catch (error) {
@@ -221,7 +195,29 @@ app.get("/auth/check", (req, res) => {
   }
 }
 );
-// =============== Section 7: Starting the Server ===============
+
+// =============== Section 7: Loading Static Files ===============
+
+// Get the current file path and directory name
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Serve static files from the "client/dist" directory
+const staticPath = join(__dirname, './client/dist');
+app.use(express.static(staticPath));
+
+// Serve the index.html file for all other routes
+app.get('*', function (_, res) {
+  const indexPath = join(__dirname, './client/dist/index.html');
+  res.sendFile(indexPath, function (err) {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(500).send(err);
+    }
+  });
+});
+
+// =============== Section 8: Starting the Server ===============
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
