@@ -23,6 +23,7 @@ const MBSTORE = MongoStore.create({
   mongoUrl: process.env.MDB_CONNECT_STRING
 });
 // =============== Section 4: Session & Passport Initialization ===============
+app.set("trust proxy", 1);
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -30,7 +31,7 @@ app.use(
     saveUninitialized: false,
     store: MBSTORE,
     cookie: {
-      secure: true,
+      //secure: true,
       maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
     }
   })
